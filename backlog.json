@@ -1,0 +1,92 @@
+[
+  {
+    "title": "Scaffold FastAPI backend with CI and test tools",
+    "body": "**Description:**\nSet up FastAPI project with linting (black), testing (pytest), and CI (GitHub Actions).\n\n**Acceptance Criteria:**\n- Project runs locally\n- GitHub Actions passes on push\n- Code formatting enforced\n\n**Tags:** TDD, Infra",
+    "labels": ["Sprint 1", "TDD", "Infra"]
+  },
+  {
+    "title": "Set up Supabase schema for users, projects, and PRDs",
+    "body": "**Description:**\nCreate PostgreSQL tables for users, projects, PRD documents, and prompt templates.\n\n**Acceptance Criteria:**\n- Supabase DB schema deployed\n- Foreign key relations established\n- Columns include timestamps and UUIDs\n\n**Tags:** DB, TDD",
+    "labels": ["Sprint 1", "DB", "TDD"]
+  },
+  {
+    "title": "Integrate OpenAI API for PRD generation",
+    "body": "**Description:**\nAdd Python client to call OpenAI and return draft PRD content.\n\n**Acceptance Criteria:**\n- Environment variable config for API keys\n- Model response is parsed correctly\n\n**Tags:** AI, API",
+    "labels": ["Sprint 1", "AI", "API"]
+  },
+  {
+    "title": "Integrate Claude (Anthropic) API as alternative LLM provider",
+    "body": "**Description:**\nAdd support for Claude via official Anthropic Python SDK.\n\n**Acceptance Criteria:**\n- Toggle between models with config\n- Model call tested and abstracted\n\n**Tags:** AI, API",
+    "labels": ["Sprint 1", "AI", "API"]
+  },
+  {
+    "title": "Compose structured prompt from user and template data",
+    "body": "**Description:**\nCreate logic to assemble the LLM prompt using template variables and user input.\n\n**Acceptance Criteria:**\n- Placeholder substitution logic tested\n- Templates injected into final prompt string\n\n**Tags:** AI, TDD",
+    "labels": ["Sprint 1", "AI", "TDD"]
+  },
+  {
+    "title": "Save generated PRD in Supabase with project linkage",
+    "body": "**Description:**\nOn generation, store full PRD content and metadata in database.\n\n**Acceptance Criteria:**\n- PRD saved with user_id and project_id\n- Supports format metadata (md/json)\n\n**Tags:** DB, BDD",
+    "labels": ["Sprint 1", "DB", "BDD"]
+  },
+  {
+    "title": "POST /generate-prd endpoint for prompt input and LLM call",
+    "body": "**Description:**\nCreate an API endpoint that accepts user input and returns generated PRD from LLM.\n\n**Acceptance Criteria:**\n- Accepts prompt, returns JSON\n- Validates input and returns HTTP 422 if invalid\n\n**Tags:** API, TDD",
+    "labels": ["Sprint 1", "API", "TDD"]
+  },
+  {
+    "title": "Write unit tests for backend logic and LLM abstraction",
+    "body": "**Description:**\nEnsure TDD coverage for prompt composition, LLM call, and DB write.\n\n**Acceptance Criteria:**\n- All backend functions tested in isolation\n- 85%+ test coverage\n\n**Tags:** Test, TDD",
+    "labels": ["Sprint 1", "Test", "TDD"]
+  },
+  {
+    "title": "Write BDD scenarios for PRD generation flow",
+    "body": "**Description:**\nImplement Gherkin-style tests for submit prompt → generate → store PRD.\n\n**Acceptance Criteria:**\n- 3 scenarios tested\n- Mocks used for external LLM calls\n\n**Tags:** Test, BDD",
+    "labels": ["Sprint 1", "Test", "BDD"]
+  },
+  {
+    "title": "Markdown formatting of PRD with SSCS structure",
+    "body": "**Description:**\nCreate a markdown rendering engine that formats PRD per SSCS.\n\n**Acceptance Criteria:**\n- Sections: Overview, Goals, Features, Data Model, TDD\n- Rendered cleanly in UI and API\n\n**Tags:** Format, TDD",
+    "labels": ["Sprint 2", "Format", "TDD"]
+  },
+  {
+    "title": "Create JSON schema output of PRD document",
+    "body": "**Description:**\nConvert PRD into structured JSON with keys for each section.\n\n**Acceptance Criteria:**\n- Schema validates in OpenAPI\n- Includes test cases in JSON array\n\n**Tags:** Format, TDD",
+    "labels": ["Sprint 2", "Format", "TDD"]
+  },
+  {
+    "title": "Add export endpoint /export/:project_id",
+    "body": "**Description:**\nAllow clients to download PRD document in Markdown or JSON.\n\n**Acceptance Criteria:**\n- Supports Accept headers\n- Returns 404 if not found\n\n**Tags:** API, TDD",
+    "labels": ["Sprint 2", "API", "TDD"]
+  },
+  {
+    "title": "Add download button and export option to UI",
+    "body": "**Description:**\nLet users export the generated PRD document with a single click.\n\n**Acceptance Criteria:**\n- Buttons for Markdown and JSON\n- Export triggers download\n\n**Tags:** UI, Test",
+    "labels": ["Sprint 2", "UI", "Test"]
+  },
+  {
+    "title": "Add Supabase Auth with email login/signup",
+    "body": "**Description:**\nImplement secure auth using Supabase's built-in provider.\n\n**Acceptance Criteria:**\n- Login form works\n- Auth required for generate/export\n\n**Tags:** Auth, BDD",
+    "labels": ["Sprint 3", "Auth", "BDD"]
+  },
+  {
+    "title": "View past projects for logged-in user",
+    "body": "**Description:**\nShow a dashboard list of previously generated PRDs.\n\n**Acceptance Criteria:**\n- Lists project title, date, format\n- Clicking opens full preview\n\n**Tags:** UI, DB",
+    "labels": ["Sprint 3", "UI", "DB"]
+  },
+  {
+    "title": "Dropdown to select PRD generation template",
+    "body": "**Description:**\nLet user choose from pre-defined templates: CRUD, AI Agent, SaaS App.\n\n**Acceptance Criteria:**\n- Dropdown rendered on form\n- Selection updates template payload\n\n**Tags:** UI, Dev",
+    "labels": ["Sprint 3", "UI", "Dev"]
+  },
+  {
+    "title": "Inject selected template into LLM prompt",
+    "body": "**Description:**\nMerge selected template with user input to form full prompt.\n\n**Acceptance Criteria:**\n- Tokens replaced dynamically\n- Preview shown before submit\n\n**Tags:** AI, Logic",
+    "labels": ["Sprint 3", "AI", "Logic"]
+  },
+  {
+    "title": "Deploy backend on Railway, frontend on Vercel",
+    "body": "**Description:**\nDeploy MVP version of backend and frontend, configure env vars.\n\n**Acceptance Criteria:**\n- Live URL working\n- Logs available\n\n**Tags:** Infra, DevOps",
+    "labels": ["Sprint 3", "Infra", "DevOps"]
+  }
+]
