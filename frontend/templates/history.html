@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My PRDs - PRD Generator</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+    <link rel="stylesheet" href="../css/styles.css">
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
+        <div class="container">
+            <a class="navbar-brand" href="../index.html">PRD Generator</a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav me-auto">
+                    <li class="nav-item">
+                        <a class="nav-link" href="../index.html">Home</a>
+                    </li>
+                    <li class="nav-item" id="nav-generate">
+                        <a class="nav-link" href="generate.html">Generate PRD</a>
+                    </li>
+                    <li class="nav-item" id="nav-history">
+                        <a class="nav-link active" href="history.html">My PRDs</a>
+                    </li>
+                </ul>
+                <div class="d-flex" id="auth-buttons">
+                    <a href="login.html" class="btn btn-outline-light me-2">Login</a>
+                    <a href="register.html" class="btn btn-light">Register</a>
+                </div>
+                <div class="d-flex d-none" id="user-profile">
+                    <div class="dropdown">
+                        <button class="btn btn-light dropdown-toggle" type="button" id="dropdownMenuButton" data-bs-toggle="dropdown">
+                            <span id="username">User</span>
+                        </button>
+                        <ul class="dropdown-menu dropdown-menu-end">
+                            <li><a class="dropdown-item" href="profile.html">Profile</a></li>
+                            <li><hr class="dropdown-divider"></li>
+                            <li><a class="dropdown-item" href="#" id="logout-button">Logout</a></li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container mt-5">
+        <div class="row">
+            <div class="col-lg-12">
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                    <h2>My PRDs</h2>
+                    <a href="generate.html" class="btn btn-primary">Generate New PRD</a>
+                </div>
+                
+                <div class="alert alert-info d-none" id="no-prds-message">
+                    You haven't created any PRDs yet. <a href="generate.html">Generate your first PRD</a>!
+                </div>
+                
+                <div class="alert alert-danger d-none" id="loading-error">
+                    There was an error loading your PRDs. Please refresh the page or try again later.
+                </div>
+                
+                <div class="card mb-4">
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-4">
+                                <div class="input-group mb-3">
+                                    <input type="text" class="form-control" placeholder="Search by title..." id="search-input">
+                                    <button class="btn btn-outline-secondary" type="button" id="search-button">
+                                        <i class="bi bi-search"></i> Search
+                                    </button>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <select class="form-select mb-3" id="template-filter">
+                                    <option value="">All Templates</option>
+                                    <option value="crud_application">CRUD Application</option>
+                                    <option value="ai_agent">AI Agent</option>
+                                    <option value="saas_platform">SaaS Platform</option>
+                                    <option value="custom">Custom Template</option>
+                                </select>
+                            </div>
+                            <div class="col-md-4">
+                                <select class="form-select mb-3" id="sort-order">
+                                    <option value="newest">Newest First</option>
+                                    <option value="oldest">Oldest First</option>
+                                    <option value="title">Title (A-Z)</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="table-responsive">
+                    <table class="table table-striped">
+                        <thead>
+                            <tr>
+                                <th>Title</th>
+                                <th>Template</th>
+                                <th>Format</th>
+                                <th>Created</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="prd-list">
+                            <!-- PRD rows will be dynamically inserted here -->
+                            <tr id="loading-indicator">
+                                <td colspan="5" class="text-center">
+                                    <div class="spinner-border text-primary" role="status">
+                                        <span class="visually-hidden">Loading...</span>
+                                    </div>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+                
+                <nav aria-label="Page navigation" class="d-none" id="pagination-container">
+                    <ul class="pagination justify-content-center" id="pagination">
+                        <!-- Pagination will be dynamically inserted here -->
+                    </ul>
+                </nav>
+            </div>
+        </div>
+    </div>
+    
+    <!-- View PRD Modal -->
+    <div class="modal fade" id="viewPrdModal" tabindex="-1" aria-labelledby="viewPrdModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-xl">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="viewPrdModalLabel">PRD Title</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div id="modal-prd-content"></div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-outline-secondary" id="modal-copy-button">Copy</button>
+                    <button type="button" class="btn btn-outline-primary" id="modal-download-button">Download</button>
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <footer class="bg-light mt-5 py-3">
+        <div class="container text-center">
+            <p>© 2025 PRD Generator | <a href="#">Terms</a> | <a href="#">Privacy</a></p>
+        </div>
+    </footer>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <script src="../js/auth.js"></script>
+    <script src="../js/history.js"></script>
+</body>
+</html>
