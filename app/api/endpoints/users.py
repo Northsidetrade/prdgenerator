@@ -15,7 +15,7 @@ router = APIRouter()
 
 @router.get("/me", response_model=UserSchema)
 def read_users_me(
-    current_user: User = Depends(get_current_user),
+    current_user: User = Depends(get_current_active_user),
 ) -> Any:
     """
     Get current user.
@@ -30,7 +30,7 @@ def read_users_me(
 
 
 @router.put("/me", response_model=UserSchema)
-def update_user_me(
+def update_users_me(
     *,
     db: Session = Depends(get_db),
     user_in: UserUpdate,
@@ -47,5 +47,5 @@ def update_user_me(
     Returns:
         Updated user information
     """
-    user = UserService.update(db, db_obj=current_user, obj_in=user_in)
+    user = UserService.update(db, db_user=current_user, user_in=user_in)
     return user

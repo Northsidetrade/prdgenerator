@@ -51,16 +51,27 @@ class Settings(BaseSettings):
         """Validate and set default settings."""
         # Handle CORS_ORIGINS
         if not data.get('CORS_ORIGINS'):
-            data['CORS_ORIGINS'] = ["http://localhost:3000"]
+            # Include both development ports and localhost
+            data['CORS_ORIGINS'] = [
+                "http://localhost:3000",
+                "http://localhost:8080",
+                "http://127.0.0.1:8080"
+            ]
         elif isinstance(data.get('CORS_ORIGINS'), str):
             data['CORS_ORIGINS'] = [origin.strip() for origin in data['CORS_ORIGINS'].split(',') if origin.strip()]
         
         # Handle database URI
         if not data.get('SQLALCHEMY_DATABASE_URI'):
             data['SQLALCHEMY_DATABASE_URI'] = f"postgresql://{data.get('POSTGRES_USER', 'postgres')}:{data.get('POSTGRES_PASSWORD', 'postgres')}@{data.get('POSTGRES_SERVER', 'localhost')}/{data.get('POSTGRES_DB', 'prd_generator')}"
+            
+            # For development, use SQLite if PostgreSQL is not available
+            try:
+                import psycopg2
+            except ImportError:
+                data['SQLALCHEMY_DATABASE_URI'] = "sqlite:///prd_generator.db"
         
         return data
 
 
-# Create a singleton settings instance
+# Create settings instance
 settings = Settings()
