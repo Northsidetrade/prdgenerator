@@ -1,0 +1,259 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PRD Generator API Test</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        .container {
+            max-width: 800px;
+            margin-top: 2rem;
+        }
+        .card {
+            margin-bottom: 1.5rem;
+        }
+        #responseArea {
+            min-height: 200px;
+            background-color: #f8f9fa;
+            padding: 1rem;
+            border-radius: 5px;
+            font-family: monospace;
+            white-space: pre-wrap;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1 class="mb-4">PRD Generator API Test</h1>
+        
+        <div class="card">
+            <div class="card-header">Health Check</div>
+            <div class="card-body">
+                <button id="testHealth" class="btn btn-primary">Test Health Endpoint</button>
+            </div>
+        </div>
+        
+        <div class="card">
+            <div class="card-header">User Registration</div>
+            <div class="card-body">
+                <form id="registerForm">
+                    <div class="mb-3">
+                        <label for="regEmail" class="form-label">Email</label>
+                        <input type="email" class="form-control" id="regEmail" value="test@example.com">
+                    </div>
+                    <div class="mb-3">
+                        <label for="regPassword" class="form-label">Password</label>
+                        <input type="password" class="form-control" id="regPassword" value="password123">
+                    </div>
+                    <div class="mb-3">
+                        <label for="regFullName" class="form-label">Full Name</label>
+                        <input type="text" class="form-control" id="regFullName" value="Test User">
+                    </div>
+                    <button type="submit" class="btn btn-primary">Register</button>
+                </form>
+            </div>
+        </div>
+        
+        <div class="card">
+            <div class="card-header">User Login</div>
+            <div class="card-body">
+                <form id="loginForm">
+                    <div class="mb-3">
+                        <label for="loginEmail" class="form-label">Email</label>
+                        <input type="email" class="form-control" id="loginEmail" value="test@example.com">
+                    </div>
+                    <div class="mb-3">
+                        <label for="loginPassword" class="form-label">Password</label>
+                        <input type="password" class="form-control" id="loginPassword" value="password123">
+                    </div>
+                    <button type="submit" class="btn btn-primary">Login</button>
+                </form>
+            </div>
+        </div>
+        
+        <div class="card">
+            <div class="card-header">My Profile (Authenticated)</div>
+            <div class="card-body">
+                <button id="testMe" class="btn btn-primary">Get My Profile</button>
+            </div>
+        </div>
+        
+        <h3 class="mt-4 mb-2">Response</h3>
+        <div id="responseArea"></div>
+    </div>
+    
+    <script>
+        // API Configuration
+        const API_URL = 'http://localhost:8000/api/v1';
+        let authToken = null;
+        
+        // Helper to display responses
+        function displayResponse(title, data) {
+            const responseArea = document.getElementById('responseArea');
+            let content = `--- ${title} ---\n`;
+            
+            if (typeof data === 'object') {
+                content += JSON.stringify(data, null, 2);
+            } else {
+                content += data;
+            }
+            
+            responseArea.textContent = content;
+        }
+        
+        // Helper to handle errors
+        function handleError(title, error) {
+            console.error(error);
+            displayResponse(title, `Error: ${error.message || 'Unknown error'}`);
+        }
+        
+        // Health endpoint test
+        document.getElementById('testHealth').addEventListener('click', async () => {
+            try {
+                const response = await fetch(`${API_URL}/health/`);
+                const data = await response.text();
+                
+                try {
+                    const jsonData = JSON.parse(data);
+                    displayResponse('Health Check', {
+                        status: response.status,
+                        data: jsonData
+                    });
+                } catch (e) {
+                    displayResponse('Health Check', {
+                        status: response.status,
+                        data
+                    });
+                }
+            } catch (error) {
+                handleError('Health Check', error);
+            }
+        });
+        
+        // Registration form
+        document.getElementById('registerForm').addEventListener('submit', async (event) => {
+            event.preventDefault();
+            
+            try {
+                const email = document.getElementById('regEmail').value;
+                const password = document.getElementById('regPassword').value;
+                const fullName = document.getElementById('regFullName').value;
+                
+                const response = await fetch(`${API_URL}/auth/register`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        email,
+                        password,
+                        full_name: fullName
+                    })
+                });
+                
+                const data = await response.text();
+                
+                try {
+                    const jsonData = JSON.parse(data);
+                    displayResponse('Registration', {
+                        status: response.status,
+                        data: jsonData
+                    });
+                } catch (e) {
+                    displayResponse('Registration', {
+                        status: response.status,
+                        data
+                    });
+                }
+            } catch (error) {
+                handleError('Registration', error);
+            }
+        });
+        
+        // Login form
+        document.getElementById('loginForm').addEventListener('submit', async (event) => {
+            event.preventDefault();
+            
+            try {
+                const email = document.getElementById('loginEmail').value;
+                const password = document.getElementById('loginPassword').value;
+                
+                // OAuth2 password flow uses form data
+                const formData = new URLSearchParams();
+                formData.append('username', email);
+                formData.append('password', password);
+                
+                const response = await fetch(`${API_URL}/auth/login`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded'
+                    },
+                    body: formData
+                });
+                
+                const data = await response.text();
+                
+                try {
+                    const jsonData = JSON.parse(data);
+                    displayResponse('Login', {
+                        status: response.status,
+                        data: jsonData
+                    });
+                    
+                    if (response.ok && jsonData.access_token) {
+                        authToken = jsonData.access_token;
+                        displayResponse('Login', {
+                            status: response.status,
+                            message: 'Login successful',
+                            token: `${authToken.substring(0, 10)}...`
+                        });
+                    }
+                } catch (e) {
+                    displayResponse('Login', {
+                        status: response.status,
+                        data
+                    });
+                }
+            } catch (error) {
+                handleError('Login', error);
+            }
+        });
+        
+        // Get my profile
+        document.getElementById('testMe').addEventListener('click', async () => {
+            try {
+                if (!authToken) {
+                    displayResponse('My Profile', {
+                        error: 'No auth token available. Please login first.'
+                    });
+                    return;
+                }
+                
+                const response = await fetch(`${API_URL}/users/me`, {
+                    headers: {
+                        'Authorization': `Bearer ${authToken}`
+                    }
+                });
+                
+                const data = await response.text();
+                
+                try {
+                    const jsonData = JSON.parse(data);
+                    displayResponse('My Profile', {
+                        status: response.status,
+                        data: jsonData
+                    });
+                } catch (e) {
+                    displayResponse('My Profile', {
+                        status: response.status,
+                        data
+                    });
+                }
+            } catch (error) {
+                handleError('My Profile', error);
+            }
+        });
+    </script>
+</body>
+</html>

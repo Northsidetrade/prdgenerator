@@ -1,115 +1,104 @@
 """API dependencies for FastAPI endpoints."""
 
-from typing import Generator, Optional
+from typing import Optional
 import uuid
 
-from fastapi import Depends, HTTPException, status
-from fastapi.security import OAuth2PasswordBearer
-from jose import jwt, JWTError
-from pydantic import ValidationError
+from fastapi import Depends, HTTPException, status, Header
 from sqlalchemy.orm import Session
+from jose import jwt, JWTError
 
 from app.db.session import get_db
 from app.core.config import settings
-from app.core.security import verify_password
 from app.services.user_service import UserService
-from app.schemas.user import TokenPayload, User
 from app.models.user import User as UserModel
 
-# OAuth2 scheme for token-based authentication
-oauth2_scheme = OAuth2PasswordBearer(
-    tokenUrl=f"{settings.API_V1_STR}/auth/login"
-)
+# Simple function to get token from Authorization header
+def get_token(authorization: Optional[str] = Header(None)) -> Optional[str]:
+    """Extract JWT token from Authorization header."""
+    if not authorization:
+        return None
+        
+    parts = authorization.split()
+    if len(parts) != 2 or parts[0].lower() != "bearer":
+        return None
+        
+    return parts[1]
 
-
+# Function to get current user (without requiring authentication)
 def get_current_user(
     db: Session = Depends(get_db),
-    token: str = Depends(oauth2_scheme),
-) -> UserModel:
+    token: Optional[str] = Depends(get_token)
+) -> Optional[UserModel]:
     """
-    Dependency to get the current authenticated user.
+    Get current user from JWT token without requiring authentication.
     
     Args:
         db: Database session
-        token: JWT token from request
+        token: JWT token
         
     Returns:
-        Current authenticated user
-        
-    Raises:
-        HTTPException: If authentication fails
+        User if token is valid, None otherwise
     """
-    try:
-        # Decode JWT token
-        payload = jwt.decode(
-            token, settings.SECRET_KEY, algorithms=[settings.ALGORITHM]
-        )
-        token_data = TokenPayload(**payload)
+    if not token:
+        return None
         
-        # Check token expiration
-        if token_data.exp is None:
-            raise HTTPException(
-                status_code=status.HTTP_401_UNAUTHORIZED,
-                detail="Token expired",
-                headers={"WWW-Authenticate": "Bearer"},
-            )
-    except (JWTError, ValidationError):
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Could not validate credentials",
-            headers={"WWW-Authenticate": "Bearer"},
+    try:
+        payload = jwt.decode(
+            token, 
+            settings.SECRET_KEY, 
+            algorithms=[settings.ALGORITHM]
         )
-    
-    # Get user from database
-    user_id = uuid.UUID(token_data.sub)
-    user = UserService.get_by_id(db, user_id)
-    if user is None:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="User not found",
-        )
-    
-    # Check if user is active
-    if not UserService.is_active(user):
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Inactive user",
-        )
-    
+        user_id = payload.get("sub")
+        if not user_id:
+            return None
+    except JWTError:
+        return None
+        
+    user = UserService.get_by_id(db, uuid.UUID(user_id))
     return user
 
-
+# Function to get current active user (requiring authentication)
 def get_current_active_user(
-    current_user: UserModel = Depends(get_current_user),
+    db: Session = Depends(get_db),
+    current_user: Optional[UserModel] = Depends(get_current_user)
 ) -> UserModel:
     """
-    Dependency to get current active user.
+    Get current active user, requiring authentication.
     
     Args:
+        db: Database session
         current_user: Current user from token
         
     Returns:
         Current active user
         
     Raises:
-        HTTPException: If user is inactive
+        HTTPException: If not authenticated or user is inactive
     """
+    if not current_user:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Not authenticated",
+            headers={"WWW-Authenticate": "Bearer"}
+        )
+        
     if not UserService.is_active(current_user):
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Inactive user",
+            detail="Inactive user"
         )
+        
     return current_user
 
-
+# For superuser access
 def get_current_active_superuser(
-    current_user: UserModel = Depends(get_current_user),
+    current_user: UserModel = Depends(get_current_active_user)
 ) -> UserModel:
     """
-    Dependency to get current active superuser.
+    Get current active superuser, raising exception if not a superuser.
     
     Args:
-        current_user: Current user from token
+        current_user: Current active user
         
     Returns:
         Current active superuser
@@ -122,4 +111,5 @@ def get_current_active_superuser(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="Not enough permissions",
         )
+        
     return current_user

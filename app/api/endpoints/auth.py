@@ -7,7 +7,6 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordRequestForm
 from sqlalchemy.orm import Session
 
-from app.api.deps import get_current_user
 from app.core.config import settings
 from app.core.security import create_access_token
 from app.db.session import get_db
@@ -15,20 +14,21 @@ from app.models.user import User
 from app.services.user_service import UserService
 from app.schemas.user import Token, User as UserSchema, UserCreate
 
+# Use router with no dependencies since auth is handled by OptionalOAuth2PasswordBearer in deps.py
 router = APIRouter()
 
 
 @router.post("/login", response_model=Token)
-def login_access_token(
-    db: Session = Depends(get_db),
-    form_data: OAuth2PasswordRequestForm = Depends()
+async def login_access_token(
+    form_data: OAuth2PasswordRequestForm = Depends(),
+    db: Session = Depends(get_db)
 ) -> Any:
     """
     OAuth2 compatible token login, get an access token for future requests.
     
     Args:
-        db: Database session
         form_data: OAuth2 form data with username and password
+        db: Database session
         
     Returns:
         Token with access token and token type
@@ -36,6 +36,9 @@ def login_access_token(
     Raises:
         HTTPException: If authentication fails
     """
+    # Log the login attempt for debugging
+    print(f"Login attempt for user: {form_data.username}")
+    
     # Authenticate user
     user = UserService.authenticate(
         db, email=form_data.username, password=form_data.password
@@ -60,21 +63,23 @@ def login_access_token(
         subject=str(user.id), expires_delta=access_token_expires
     )
     
+    # Log successful login
+    print(f"Login successful for user: {form_data.username}")
+    
     return {"access_token": token, "token_type": "bearer"}
 
 
 @router.post("/register", response_model=UserSchema, status_code=status.HTTP_201_CREATED)
-def register_user(
-    *,
-    db: Session = Depends(get_db),
+async def register_user(
     user_in: UserCreate,
+    db: Session = Depends(get_db)
 ) -> Any:
     """
     Register a new user.
     
     Args:
-        db: Database session
         user_in: User creation data
+        db: Database session
         
     Returns:
         Created user
@@ -82,6 +87,9 @@ def register_user(
     Raises:
         HTTPException: If user already exists
     """
+    # Log registration attempt
+    print(f"Registration attempt for email: {user_in.email}")
+    
     # Check if user already exists
     user = UserService.get_by_email(db, email=user_in.email)
     if user:
@@ -92,4 +100,8 @@ def register_user(
     
     # Create user
     user = UserService.create(db, user_in=user_in)
+    
+    # Log successful registration
+    print(f"User registered successfully: {user_in.email}")
+    
     return user

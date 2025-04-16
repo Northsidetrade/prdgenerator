@@ -3,6 +3,9 @@
  * Following Semantic Seed Coding Standards for JavaScript implementation
  */
 
+// API Configuration
+const API_URL = 'http://localhost:8888/api/v1';
+
 document.addEventListener('DOMContentLoaded', () => {
     // Elements
     const generateForm = document.getElementById('generate-form');
