@@ -67,16 +67,12 @@ document.addEventListener('DOMContentLoaded', () => {
             // Show loading state
             setLoadingState(true);
             
-            // Get auth headers
-            const headers = {
-                'Content-Type': 'application/json',
-                ...window.AuthModule.getAuthHeaders()
-            };
-            
             // Send request to API
             const response = await fetch(`${API_URL}/prd/generate`, {
                 method: 'POST',
-                headers: headers,
+                headers: {
+                    'Content-Type': 'application/json'
+                },
                 body: JSON.stringify(prdData)
             });
             
