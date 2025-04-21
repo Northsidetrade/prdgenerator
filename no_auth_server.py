@@ -2,6 +2,7 @@
 
 from fastapi import FastAPI, Form, Depends
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel, ConfigDict
 from datetime import datetime, UTC
 import uuid
@@ -22,6 +23,9 @@ load_dotenv()
 
 # Create FastAPI app
 app = FastAPI(title="Direct PRD Generator API - NO AUTH")
+
+# Mount static files
+app.mount("/frontend", StaticFiles(directory="frontend", html=True), name="frontend")
 
 # Set up CORS
 app.add_middleware(
