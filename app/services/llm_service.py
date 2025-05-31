@@ -8,10 +8,6 @@ from enum import Enum
 import asyncio
 from functools import partial
 
-import openai
-from openai import OpenAI
-import anthropic
-
 from app.core.config import settings
 from app.schemas.prd import TemplateType, Format
 
@@ -20,14 +16,10 @@ logger = logging.getLogger(__name__)
 
 class ModelProvider(str, Enum):
     """Supported LLM providers."""
-    
-    OPENAI = "openai"
-    ANTHROPIC = "anthropic"
+    OLLAMA = "ollama"
+   
     TEST = "test"  # Special provider for testing without API calls
 
-# Initialize clients
-openai_client = OpenAI(api_key=settings.OPENAI_API_KEY)
-anthropic_client = anthropic.Anthropic(api_key=settings.ANTHROPIC_API_KEY)
 
 # Template prompts for different PRD types
 TEMPLATE_PROMPTS = {
@@ -138,12 +130,10 @@ async def generate_prd_content(
         prompt += "\n\nReturn the PRD in markdown format with proper headings and formatting."
     
     try:
-        if provider == ModelProvider.OPENAI:
-            return await _generate_with_openai(prompt, output_format)
-        elif provider == ModelProvider.ANTHROPIC:
-            return await _generate_with_anthropic(prompt, output_format)
-        else:
-            raise ValueError(f"Unsupported provider: {provider}")
+        if provider == ModelProvider.OLLAMA:
+        	return _generate_with_ollama(prompt)
+    	else:
+        	raise ValueError(f"Unsupported provider: {provider}")
     except Exception as e:
         logger.error(f"Error generating PRD content: {str(e)}")
         raise
@@ -233,45 +223,20 @@ We will follow a TDD/BDD approach with:
 
 The estimated timeline for development is 3 months.
 """
-
-async def _generate_with_openai(prompt: str, output_format: Format) -> str:
-    """Generate content using OpenAI's API."""
+def _generate_with_ollama(prompt: str) -> str:
+    """Generate content using the local Ollama server."""
     try:
-        # Run the synchronous OpenAI API call in a thread pool
-        loop = asyncio.get_event_loop()
-        completion_func = partial(
-            openai_client.chat.completions.create,
-            model="gpt-4",
-            messages=[
-                {"role": "system", "content": "You are a product manager who writes detailed, well-structured PRDs."},
-                {"role": "user", "content": prompt}
-            ],
-            temperature=0.7,
-            max_tokens=4000
+        response = requests.post(
+            url=os.getenv("MISTRAL_API_URL") + "/api/chat",
+            json={
+                "model": os.getenv("DEFAULT_MODEL"),
+                "messages": [
+                    {"role": "user", "content": prompt}
+                ]
+            }
         )
-        completion = await loop.run_in_executor(None, completion_func)
-        return completion.choices[0].message.content
+        response.raise_for_status()
+        return response.json()["message"]["content"]
     except Exception as e:
-        logger.error(f"OpenAI API error: {str(e)}")
-        raise
-
-async def _generate_with_anthropic(prompt: str, output_format: Format) -> str:
-    """Generate content using Anthropic's API."""
-    try:
-        # Run the synchronous Anthropic API call in a thread pool
-        loop = asyncio.get_event_loop()
-        message_func = partial(
-            anthropic_client.messages.create,
-            model="claude-3-opus-20240229",
-            max_tokens=4000,
-            temperature=0.7,
-            system="You are a product manager who writes detailed, well-structured PRDs.",
-            messages=[
-                {"role": "user", "content": prompt}
-            ]
-        )
-        message = await loop.run_in_executor(None, message_func)
-        return message.content[0].text
-    except Exception as e:
-        logger.error(f"Anthropic API error: {str(e)}")
+        logger.error(f"Ollama error: {str(e)}")
         raise

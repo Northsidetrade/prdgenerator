@@ -13,10 +13,7 @@ from enum import Enum
 from typing import Optional
 from fastapi.security import OAuth2PasswordRequestForm
 from dotenv import load_dotenv
-
-import openai
-from openai import OpenAI
-import anthropic
+import requests
 
 # Load environment variables
 load_dotenv()
@@ -37,13 +34,8 @@ app.add_middleware(
 )
 
 # Load environment variables
-OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
-ANTHROPIC_API_KEY = os.getenv("ANTHROPIC_API_KEY")
-DEFAULT_MODEL_PROVIDER = os.getenv("DEFAULT_MODEL_PROVIDER", "openai")
+DEFAULT_MODEL_PROVIDER = os.getenv("DEFAULT_MODEL_PROVIDER")
 
-# Initialize clients
-openai_client = OpenAI(api_key=OPENAI_API_KEY)
-anthropic_client = anthropic.Anthropic(api_key=ANTHROPIC_API_KEY)
 
 # Mock database
 USERS_DB = {}
@@ -198,12 +190,10 @@ async def generate_prd_content(
         prompt += "\n\nReturn the PRD in markdown format with proper headings and formatting."
     
     try:
-        if provider == "openai":
-            return await _generate_with_openai(prompt, output_format)
-        elif provider == "anthropic":
-            return await _generate_with_anthropic(prompt, output_format)
+        if provider == "ollama":
+    	    return_generate_with_ollama(prompt)
         else:
-            raise ValueError(f"Unsupported provider: {provider}")
+    	    raise ValueError(f"Unsupported provider: {provider}")
     except Exception as e:
         print(f"Error generating PRD content: {str(e)}")
         return _generate_test_content(title, input_prompt, template_type, output_format)
@@ -346,6 +336,25 @@ def get_me():
         "is_active": True
     }
     return default_user
+
+def _generate_with_ollama(prompt: str) -> str:
+    """Generate content using the local Ollama server."""
+    try:
+        response = requests.post(
+            url=os.getenv("MISTRAL_API_URL") + "/api/chat",
+            json={
+                "model": os.getenv("DEFAULT_MODEL"),
+                "messages": [
+                    {"role": "user", "content": prompt}
+                ]
+            }
+        )
+        response.raise_for_status()
+        return response.json()["message"]["content"]
+    except Exception as e:
+        print(f"Ollama error: {str(e)}")
+        raise
+
 
 @app.post("/api/v1/prd/generate")
 async def generate_prd(prd_in: PRDCreate):

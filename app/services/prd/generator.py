@@ -7,9 +7,8 @@ from uuid import UUID, uuid4
 
 from app.core.config import settings
 from app.schemas.prd import Format, PRDCreate, PRDResponse, TemplateType
-from app.services.llm.anthropic_provider import AnthropicProvider
 from app.services.llm.base import LLMProvider
-from app.services.llm.openai_provider import OpenAIProvider
+
 
 
 class PRDGenerationService:
@@ -24,8 +23,7 @@ class PRDGenerationService:
         """Initialize the PRD generation service."""
         self.logger = logging.getLogger("app.services.prd.generator")
         self.providers: Dict[str, LLMProvider] = {
-            "openai": OpenAIProvider(),
-            "anthropic": AnthropicProvider(),
+            "ollama": OllamaProvider(),
         }
         self.default_provider = settings.DEFAULT_MODEL_PROVIDER
     
@@ -39,7 +37,7 @@ class PRDGenerationService:
         
         Args:
             prd_data: Input data for PRD generation
-            llm_provider: Optional provider override (openai or anthropic)
+            llm_provider: Optional provider override (ollama)
         
         Returns:
             PRDResponse with the generated document
