@@ -1,153 +1,71 @@
-# PRD Generator
-AI Powered PRD Generator for AI Pair Programming
+# PRD Generator (Ollama + Mistral Edition)
 
-## Overview
-
-PRD Generator is a tool that leverages AI models (OpenAI GPT-4 and Anthropic Claude) to automatically generate Product Requirements Documents based on simple inputs. This project follows the Semantic Seed Venture Studio Coding Standards with a focus on code quality, security, and test-driven development.
+This is a fork of Northsidetrade/prdgenerator, modified to run entirely locally using Ollama and the Mistral-7B-Instruct model — no OpenAI or Anthropic APIs needed.
 
 ## Features
 
-- **No-Auth Mode**: Run the server without authentication for easy testing and development
-- **AI-Powered Generation**: Uses OpenAI GPT-4 and Anthropic Claude for high-quality PRD generation
-- **Multiple Templates**: Choose from CRUD, AI Agent, SaaS, or Custom templates
-- **Format Options**: Generate PRDs in Markdown or JSON format
-- **Simple API**: RESTful API with clear endpoints and documentation
-- **Basic Frontend**: Modern web interface with Bootstrap 5 and EasyMDE for Markdown editing
+- Generates full Product Requirements Documents (PRDs)
+- Powered by local LLM (no API keys required)
+- Easy to run offline
+- Supports multiple template types: crud, ai_agent, saas, custom
 
-## Project Structure
+## Requirements
 
-```
-prdgenerator/
-├── frontend/                 # Static frontend files
-│   ├── css/                 # Custom styles
-│   ├── js/                  # JavaScript modules
-│   └── templates/           # HTML templates
-├── no_auth_server.py        # No-auth FastAPI server
-├── requirements.txt         # Python dependencies
-└── .env                     # Environment variables
-```
+- Python 3.10 or newer
+- Ollama installed (https://ollama.com/download)
+- Git
+- curl or Postman
 
-## API Endpoints
+## Quick Setup
 
-### No-Auth Server (Port 8888)
+1. Install Ollama  
+   Download and install Ollama for your operating system:  
+   https://ollama.com/download
 
-- `GET /api/v1/health` - Health check endpoint
-- `POST /api/v1/prd/generate` - Generate a new PRD
-- `GET /api/v1/prd` - List all generated PRDs
+2. Pull the Mistral model  
 
-#### PRD Generation Payload
-```json
-{
-    "title": "Product Name",
-    "input_prompt": "Product Description",
-    "template_type": "crud_application|ai_agent|saas_platform|custom",
-    "format": "markdown|json"
-}
-```
+        ollama pull mistral
 
-## Frontend Components
+3. Clone this repository  
+- git clone https://github.com/Northsidetrade/prdgenerator.git
+- cd prdgenerator
 
-- **Navigation**: Responsive navbar with links to main features
-- **PRD Generation Form**: 
-  - Product Title input
-  - Product Description textarea
-  - Template Type selector
-  - Output Format selector
-- **Result Display**:
-  - Markdown editor for viewing generated PRD
-  - Copy to clipboard functionality
-  - Download options (Markdown/JSON)
 
-## Quick Start
+4. Set up and activate the virtual environment  
+    python3 -m venv venv
+    source venv/bin/activate
+    pip install -r requirements.txt
 
-### Prerequisites
 
-1. Python 3.8 or higher
-2. Node.js 14 or higher (optional, for development)
-3. OpenAI API key
-4. Anthropic API key
+5. Run the FastAPI server  
+    python no_auth_server.py
 
-### Environment Setup
 
-1. Clone the repository:
-```bash
-git clone <repository-url>
-cd prdgenerator
-```
+6. Test the API using curl  
 
-2. Create and activate virtual environment:
-```bash
-python -m venv venv
-source venv/bin/activate  # On Windows: venv\Scripts\activate
-```
+    curl -s -X POST http://localhost:8888/api/v1/prd/generate
+    -H "Content-Type: application/json"
+    -d '{
+    "title": "Mindful Habits App",
+    "input_prompt": "an app that helps users stay mindful through journaling and reminders",
+    "template_type": "saas",
+    "format": "markdown"
+    }' | jq -r .content
 
-3. Install dependencies:
-```bash
-pip install -r requirements.txt
-```
 
-4. Create `.env` file:
-```env
-OPENAI_API_KEY=your_openai_key_here
-ANTHROPIC_API_KEY=your_anthropic_key_here
-DEFAULT_MODEL_PROVIDER=openai
-```
+## Template Types
 
-### Running the Application
+- crud: Standard create/read/update/delete apps
+- ai_agent: AI-powered tools and assistants
+- saas: Cloud platforms or subscription-based services
+- custom: General-purpose PRD structure
 
-1. Start the No-Auth Server:
-```bash
-python no_auth_server.py
-```
-The server will start on http://0.0.0.0:8888
+## License and Credits
 
-2. Start the Frontend:
-```bash
-cd frontend
-python -m http.server 3001
-```
-Access the frontend at http://localhost:3001
+This is a community-driven fork of Northsidetrade/prdgenerator.  
+Created to enable fast, local prototyping using open-source language models.
 
-### Using the Application
+## Contact
 
-1. Navigate to http://localhost:3001/templates/generate.html
-2. Fill out the PRD generation form:
-   - Enter product title
-   - Provide detailed product description
-   - Select template type
-   - Choose output format
-3. Click "Generate PRD"
-4. View, copy, or download the generated PRD
-
-## Development
-
-### Key Dependencies
-
-- **Backend**:
-  - FastAPI: Web framework
-  - Pydantic: Data validation
-  - OpenAI & Anthropic: AI providers
-  - python-dotenv: Environment management
-
-- **Frontend**:
-  - Bootstrap 5: UI framework
-  - EasyMDE: Markdown editor
-  - Native Fetch API: HTTP requests
-
-## Testing
-
-Run the test suite:
-```bash
-pytest
-```
-
-## Contributing
-
-1. Follow the Semantic Seed Venture Studio Coding Standards
-2. Write tests for new features
-3. Update documentation as needed
-4. Submit pull requests with clear descriptions
-
-## License
-
-[MIT License](LICENSE)
+Maintained by: Northsidetrade  
+GitHub: https://github.com/Northsidetrade
